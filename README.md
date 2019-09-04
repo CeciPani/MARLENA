@@ -1,6 +1,6 @@
 # MARLENA
 
-This project aims to address the multi-label black-box outcome explanation problem. MARLENA (**M**ulti-l**a**bel **R**u**l**e-based **E**xpla**NA**tions) is based on our paper:
+This project aims to address the multi-label black-box outcome explanation problem. MARLENA (**M**ulti-l**A**bel **R**u**L**e-based **E**xpla**NA**tions) is based on our paper:
 
 ```
 @inproceedings{panigutti2019explaining,
