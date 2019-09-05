@@ -1,6 +1,8 @@
 import pandas as pd
 from scipy.spatial import distance
 from sklearn.metrics import f1_score
+from sklearn.utils import check_random_state
+from sklearn.tree import DecisionTreeClassifier
 
 from .distances import mixed_distance_arrays, normalized_euclidean_distance, simple_match_distance
 from .synthetic_neighborhood import sample_alphaFeatLabel, random_synthetic_neighborhood_df, tuned_tree
@@ -12,12 +14,12 @@ class MARLENA(object):
                  neigh_type='unified',
                  cat_dist=simple_match_distance,
                  num_dist=normalized_euclidean_distance,
-                 random_seed = 42):
+                 random_state = None):
         """
         :param neigh_type: str, 'unified' or 'mixed'
         :param cat_dist: func(x,y), distance function to be used when evaluating distance between the categorical variables of x and y (two 1-D arrays), default: scipy hamming distance
         :param num_dist: func(x,y), distance function to be used when evaluating distance between the numerical variables of x and y (two 1-D arrays), default: normalized_euclidean_distance
-        :param random_seed: int, default 42, random seed to be used when computing the sampling operation and the random_synthetic_neighborhood_df generation
+        :param random_state: an integer or numpy.RandomState that will be used to generate random numbers. If None, the random state will be initialized using the internal numpy seed.
         """
         if neigh_type not in ['unified','mixed']:
             raise ValueError('neigh_type can be either "unified" or "mixed"')
@@ -25,7 +27,7 @@ class MARLENA(object):
             self.neigh_type = neigh_type
         self.cat_dist = cat_dist
         self.num_dist = num_dist
-        self.random_seed = random_seed
+        self.random_state = check_random_state(random_state)
 
 
     def _label_X2E(self, i2e=None):
@@ -119,7 +121,7 @@ class MARLENA(object):
             samplekNN_feat = pd.concat([X2E, feature_space_distance_i2e], 1).sort_values(by='distance', ascending=True).head(k)
             #print(f'len(samplekNN_feat): {len(samplekNN_feat)}')
             #print(f'head(samplekNN_feat):\n{samplekNN_feat.head()}')
-            kNN_mixed_df = sample_alphaFeatLabel(samplekNN_feat, samplekNN_label, alpha=self.alpha, random_state=self.random_seed)
+            kNN_mixed_df = sample_alphaFeatLabel(samplekNN_feat, samplekNN_label, alpha=self.alpha, random_state=self.random_state)
             #print(f'len(kNN_mixed_df) = {len(kNN_mixed_df)}')
             return kNN_mixed_df
         else:
@@ -150,7 +152,7 @@ class MARLENA(object):
                                                                numerical_var= self.numerical_vars_,
                                                                bb=self.blackbox_,
                                                                labels_name=self.labels_name_,
-                                                               random_seed = self.random_seed)
+                                                               random_state = self.random_state)
         self.synthetic_neighbors_ = synthetic_neighbors
         
         #return synthetic_neighbors
@@ -194,15 +196,25 @@ class MARLENA(object):
         #print(f'X.shape = {X.shape}')
         y_bb = self.blackbox_.predict(X)
         #print(f'bb.predict synthetic:{y_bb}\n')
-        dt_params = {
-            'max_depth': [None, 10, 20, 30, 40, 50, 70, 80, 90, 100],
-            'min_samples_split': [2 ** i for i in range(1, 10)],
-            'min_samples_leaf': [2 ** i for i in range(1, 10)],
-        }
-        DT = tuned_tree(X, y_bb, dt_params, scoring='accuracy', cv=5)
+
+        #TO USE Tuned Decision trees (does not guarantee deterministic results)
+        #dt_params = {
+        #    'max_depth': [None, 10, 20, 30, 40, 50, 70, 80, 90, 100],
+        #    'min_samples_split': [2 ** i for i in range(1, 10)],
+        #    'min_samples_leaf': [2 ** i for i in range(1, 10)],
+        #}
+        #DT = tuned_tree(self, X, y_bb, dt_params, scoring='accuracy', cv=5)
+        #print('Decision Tree (not tuned)')
+        DT = DecisionTreeClassifier(class_weight="balanced", random_state = self.random_state)
+        DT.fit(X, y_bb)
 
         ### extract the decision rule from the decision tree:
-        rule, instance_imporant_feat,len_rule = istance_rule_extractor(i2e.values.reshape(1, -1), DT, cols_X, self.labels_name_,categorical_vars=self.categorical_vars_, numerical_vars=self.numerical_vars_)
+        rule, instance_imporant_feat,len_rule = istance_rule_extractor(i2e.values.reshape(1, -1),
+                                                                       DT,
+                                                                       cols_X,
+                                                                       self.labels_name_,
+                                                                       categorical_vars=self.categorical_vars_,
+                                                                       numerical_vars=self.numerical_vars_)
 
         ## evuluating fidelity and hit of the rule
         y_true = y_bb
@@ -214,5 +226,5 @@ class MARLENA(object):
         hit = 1-distance.hamming(y_true,y_pred)
 
         #print(f'MARLENA-{self.neigh_type}\ndecision rule: {rule}\nrule length: {len_rule}\nblack-box decision: {y_true}\nexplained decision: {y_pred}\nfidelity of DT: {fidelity}\nhit: {hit}')
-        print(f'MARLENA-{self.neigh_type}\ndecision rule: {rule}\nrule length: {len_rule}\nblack-box decision: {y_true}\nfidelity of DT: {fidelity}\nhit: {hit}')
+        #print(f'MARLENA-{self.neigh_type}\ndecision rule: {rule}\nrule length: {len_rule}\nblack-box decision: {y_true}\nfidelity of DT: {fidelity}\nhit: {hit}')
         return rule, instance_imporant_feat, fidelity, hit, DT
