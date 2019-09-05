@@ -129,7 +129,7 @@ plt.tick_params(axis='both', which='major', labelsize=16)
 ```
 
 
-![png](output_8_0.png)
+![png](https://github.com/CeciPani/MARLENA/blob/master/synthetic_plot.png)
 
 
 
