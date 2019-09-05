@@ -105,6 +105,7 @@ data/gitignoreDATA/
 
 #old black boxes
 black_boxes/old/
+old/
 /site
 
 # mypy
