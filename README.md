@@ -225,7 +225,7 @@ Together with the rule-based explanation, MARLENA also provides some metrics to 
 
 The **fidelity** compares the decisions of the DT to those of the black-box on the synthetic neighborhood. It is measured using the *F1-score*.
 
-The **hit** compares the predictions of the DT and the black-box on the instance x under analysis. It is mesured usinf the *simple match similarity* 
+The **hit** compares the predictions of the DT and the black-box on the instance x under analysis. It is measured using the *simple match similarity* 
 
 
 ```python
