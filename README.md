@@ -188,10 +188,6 @@ rule, instance_imporant_feat, fidelity, hit, DT = m1.extract_explanation(i2e,
                                                                          alpha=alpha)
 ```
 
-    /home/user/venvs/MARLENA_env/lib/python3.6/site-packages/marlena/distances.py:11: RuntimeWarning: invalid value encountered in double_scalars
-      return 0.5 * np.var(x - y) / (np.var(x) + np.var(y))
-
-
 ### Marlena output:
 
 MARLENA provides rule-based explanations. The explanation is the decision tree path from root to leaf that matches the features of the instance whose black-box classification we want to explain. 
