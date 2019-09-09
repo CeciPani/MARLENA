@@ -12,6 +12,8 @@ This project aims to address the multi-label black-box outcome explanation probl
   organization={Springer}
 }
 ```
+You can run the experiments of the paper following the instructions provided [here](https://github.com/riccotti/ExplainMultilabelClassifiers).
+
 
 ## Installing MARLENA
 0. **Install the requirements.txt listed packages**
